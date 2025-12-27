@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🎙️ Speech-to-Text Transcription</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>🎙️ Speech-to-Text Transcription</h1>
+
+        <div class="card">
+            <h2>Record Your Voice</h2>
+            <button id="recordBtn">Start Recording</button>
+            <button id="stopBtn" disabled>Stop Recording</button>
+            <audio id="audioPlayback" controls></audio>
+            <a id="downloadLink" href="#" download="recorded_audio.webm">Download Audio</a>
+        </div>
+
+        <div class="card">
+            <h2>Upload Audio File</h2>
+            <form method="post" enctype="multipart/form-data">
+                <input type="file" name="audio_file" accept="audio/*" required>
+                <button type="submit">Transcribe 🚀</button>
+            </form>
+        </div>
+
+        {% if transcription %}
+        <div class="result">
+            <h2>✅ Transcription:</h2>
+            <p>{{ transcription }}</p>
+        </div>
+        {% endif %}
+    </div>
+
+<script>
+let mediaRecorder;
+let audioChunks = [];
+
+const recordBtn = document.getElementById("recordBtn");
+const stopBtn = document.getElementById("stopBtn");
+const audioPlayback = document.getElementById("audioPlayback");
+const downloadLink = document.getElementById("downloadLink");
+
+recordBtn.onclick = async () => {
+    let stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream); // default MIME (WebM)
+    mediaRecorder.start();
+    audioChunks = [];
+
+    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+    mediaRecorder.onstop = e => {
+        const blob = new Blob(audioChunks, { type: 'audio/webm' });
+        audioPlayback.src = URL.createObjectURL(blob);
+        downloadLink.href = audioPlayback.src;
+    };
+
+    recordBtn.disabled = true;
+    stopBtn.disabled = false;
+};
+
+stopBtn.onclick = () => {
+    mediaRecorder.stop();
+    recordBtn.disabled = false;
+    stopBtn.disabled = true;
+};
+</script>
+</body>
+</html>
